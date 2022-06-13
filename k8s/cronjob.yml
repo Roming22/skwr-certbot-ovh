@@ -1,0 +1,55 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: certbot-ovh
+  labels:
+    app: certbot-ovh
+  namespace: kube-system
+spec:
+  schedule: "@weekly"
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 1209600
+      template:
+        metadata:
+          labels:
+            app: certbot-ovh
+        spec:
+          containers:
+            - image: docker.io/certbot/dns-ovh:arm64v8-latest
+              args: [
+                "certonly",
+                "--agree-tos",
+                "-d", "$(DOMAIN)",
+                "-d", "*.$(DOMAIN)",
+                "--dns-ovh",
+                "--dns-ovh-credentials", "/opt/certbot/secret/credentials.ini",
+                "--email", "$(EMAIL)",
+                "--key-type", "ecdsa",
+                "--non-interactive",
+                "-v"
+              ]
+              envFrom:
+                - configMapRef:
+                    name: certbot-ovh.env
+              imagePullPolicy: Always
+              name: certbot-ovh
+              volumeMounts:
+              - name: credentials
+                mountPath: "/opt/certbot/secret"
+              - name: ssl
+                mountPath: "/etc/letsencrypt"
+          # securityContext:
+          #   runAsUser: 65532
+          #   runAsGroup: 65532
+          volumes:
+            - name: credentials
+              secret:
+                secretName: ovh-api-keys
+                defaultMode: 0400
+            - name: ssl
+              persistentVolumeClaim:
+                claimName: kube-system.ssl.pvc
+          restartPolicy: Never

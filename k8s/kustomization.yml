@@ -1,0 +1,6 @@
+resources:
+  - volumes.yml
+  - configmap.secret.yml
+  - secrets.secret.yml
+  - cronjob.yml
+  - deployment.secret.yml

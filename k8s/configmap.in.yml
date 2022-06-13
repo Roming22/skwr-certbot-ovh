@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+data:
+  DOMAIN: $DOMAIN
+  EMAIL: $EMAIL
+kind: ConfigMap
+metadata:
+  name: certbot-ovh.env
+  labels:
+    app: certbot-ovh
+  namespace: kube-system
+---
+apiVersion: v1
+data:
+  tls.yml: |-
+    tls:
+      certificates:
+        - certFile: /etc/letsencrypt/live/$DOMAIN/fullchain.pem
+          keyFile: /etc/letsencrypt/live/$DOMAIN/privkey.pem
+          stores:
+            - default
+kind: ConfigMap
+metadata:
+  name: traefik.config
+  labels:
+    app: certbot-ovh
+  namespace: kube-system
